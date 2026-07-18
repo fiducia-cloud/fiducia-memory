@@ -8,7 +8,14 @@
 
 Tenant-scoped durable memory for Fiducia agents. It stores immutable provenance-bearing claims in PostgreSQL/pgvector, tracks supersession without destroying history, and combines full-text and cosine similarity for hybrid recall.
 
-Set DATABASE_URL to PostgreSQL with pgvector available, then run cargo run. The service migrates its schema on startup and binds to 127.0.0.1:8090 by default. FIDUCIA_MEMORY_BIND overrides it.
+Set `DATABASE_URL` to PostgreSQL with pgvector available, then run `cargo run`.
+The retained service owns connections, transactions, migrations, and row
+decoding through SeaORM; it has no direct SQLx API. It migrates on startup and
+binds to `127.0.0.1:8090` by default. `FIDUCIA_MEMORY_BIND` overrides it.
+
+`main.rs` is a thin bootstrap. Runtime wiring lives in `service`, and
+`fiducia-telemetry` sends traces and metrics over OTLP while JSON stdout logs
+flow through the collector to Loki.
 
 - POST /v1/claims appends a claim and its 1536-dimensional embedding.
 - POST /v1/claims/{claim_id}/supersede atomically closes an active claim and appends its replacement.
